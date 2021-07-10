@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"go-mysql-replication/src/global"
+	"go-mysql-replication/src/service"
 )
 
 var (
@@ -20,5 +21,9 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(global.Cfg())
+	err = service.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

@@ -1,7 +1,15 @@
 # mysql配置
-addr: 10.10.10.147:13308
+host: 10.10.10.147
+port: 13308
 user: rep_test
 pass: ACJE6pNbg9CRuOKa4OlI
 charset : utf8
 slave_id: 1002 #slave ID
 flavor: mysql
+
+pos_type: file  # only support file
+pos_file: "run/pos.json"  # only support file
+
+rules:
+    db_msg:
+      - tb_msg_\d{2}
