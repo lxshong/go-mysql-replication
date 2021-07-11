@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/go-mysql-org/go-mysql/client"
 	"github.com/go-mysql-org/go-mysql/mysql"
+	"github.com/go-mysql-org/go-mysql/schema"
 )
 
-type Tables map[string]map[string]bool
+type Tables map[string]map[string]*schema.Table
 
 // 规则匹配
 func (t *Tables) Match(database string, table string) bool {
@@ -17,17 +18,23 @@ func (t *Tables) Match(database string, table string) bool {
 	return true
 }
 
-func (t *Tables) Add(database string, table string) error {
-	(*t)[database][table] = true
-	return nil
+// 获取表信息
+func (t *Tables) GetTable(database string, table string) *schema.Table {
+	tb, ok := (*t)[database][table]
+	if !ok {
+		return nil
+	}
+	return tb
 }
 
 func (t *Tables) Change(rules2 rules) error {
 	cnf := Cfg()
+
 	conn,err := client.Connect(fmt.Sprintf("%s:%d",cnf.Host,cnf.Port),cnf.User,cnf.Password,"information_schema")
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 	if err := conn.Ping();err != nil {
 		return err
 	}
@@ -46,9 +53,18 @@ func (t *Tables) Change(rules2 rules) error {
 		}
 		if rules2.Match(tableSchema, tableName) {
 			if _, ok := (*t)[tableSchema];!ok {
-				(*t)[tableSchema] = map[string]bool{}
+				(*t)[tableSchema] = map[string]*schema.Table{}
 			}
-			(*t)[tableSchema][tableName] = true
+			conn1,err := client.Connect(fmt.Sprintf("%s:%d",cnf.Host,cnf.Port),cnf.User,cnf.Password,tableSchema)
+			if err != nil {
+				return err
+			}
+			tb,err := schema.NewTable(conn1,tableSchema,tableName)
+			if err != nil {
+				return err
+			}
+			conn1.Close()
+			(*t)[tableSchema][tableName] = tb
 		}
 		return nil
 	})
@@ -59,5 +75,3 @@ func (t *Tables) Change(rules2 rules) error {
 
 	return nil
 }
-
-

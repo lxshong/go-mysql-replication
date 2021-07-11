@@ -3,19 +3,22 @@ package service
 import (
 	"fmt"
 	"github.com/go-mysql-org/go-mysql/replication"
+	"github.com/go-mysql-org/go-mysql/schema"
 	"go-mysql-replication/src/global"
 	"log"
-	"os"
 )
 
 const (
-	DEFAULT_CAP = 4096
+	DEFAULT_CAP  = 4096
+	UpdateAction = "update"
+	InsertAction = "insert"
+	DeleteAction = "delete"
 )
 
 type handler struct {
-	cap   int
-	queue chan *replication.BinlogEvent
-	stop  chan struct{}
+	cap    int
+	queue  chan *replication.BinlogEvent
+	stop   chan struct{}
 	tables global.Tables
 }
 
@@ -46,6 +49,7 @@ func (h *handler) Callback(event *replication.BinlogEvent) error {
 }
 
 func (h *handler) startListener() error {
+	log.Println("start listener .. .. ..")
 	go func() {
 		var ev *replication.BinlogEvent = nil
 		for {
@@ -64,7 +68,7 @@ func (h *handler) startListener() error {
 }
 
 func (h *handler) stopListener() {
-	log.Fatalln("start listener")
+	log.Println("stop listener")
 	h.stop <- struct{}{}
 }
 
@@ -83,20 +87,48 @@ func (h *handler) RowsEventDeal(e *replication.BinlogEvent) error {
 
 	tableName := string(ev.Table.Table)
 	tableSchema := string(ev.Table.Schema)
-
-	if !h.tables.Match(tableSchema, tableName) {
+	tableInfo := h.tables.GetTable(tableSchema, tableName)
+	if tableInfo == nil {
 		return nil
 	}
 
-	fmt.Println(tableSchema,tableName)
+	fmt.Println(tableSchema, tableName)
+	action := ""
+	var rows []map[string]interface{}
 	switch e.Header.EventType {
 	case replication.WRITE_ROWS_EVENTv1, replication.WRITE_ROWS_EVENTv2:
 		// 插入
+		action = InsertAction
+		rows = h.RowDataToMap(ev.Rows,tableInfo)
 	case replication.DELETE_ROWS_EVENTv1, replication.DELETE_ROWS_EVENTv2:
 		// 删除
+		action = DeleteAction
+		rows = h.RowDataToMap(ev.Rows,tableInfo)
 	case replication.UPDATE_ROWS_EVENTv1, replication.UPDATE_ROWS_EVENTv2:
 		// 更新
+		action = UpdateAction
+		rows = h.RowDataToMap(ev.Rows,tableInfo)
+	default:
+		return nil
 	}
-	os.Exit(1)
+	global.NewEvent(tableSchema,tableName,action,rows)
 	return nil
+}
+
+func (h handler) RowDataToMap(rows [][]interface{}, tableInfo *schema.Table) []map[string]interface{} {
+	data := make([]map[string]interface{},0)
+	for _, row := range rows {
+		item := map[string]interface{}{}
+		for i, c := range row {
+			fieldName := tableInfo.Columns[i].Name
+			switch c.(type) {
+			case []uint8:
+				item[fieldName] = string(c.([]byte))
+			default:
+				item[fieldName] = c
+			}
+		}
+		data = append(data,item)
+	}
+	return data
 }

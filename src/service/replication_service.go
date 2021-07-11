@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"go-mysql-replication/src/global"
 	"go-mysql-replication/src/pos"
@@ -59,6 +60,7 @@ func (s *replicationService) run(callback EventCallBack) error {
 		default:
 			pst.Pos = ev.Header.LogPos
 		}
+		fmt.Println(pst)
 		//if err := s.pos.Save(); err != nil {
 		//	return err
 		//}

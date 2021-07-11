@@ -1,6 +1,7 @@
 package global
 
 import (
+	"github.com/go-mysql-org/go-mysql/schema"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -42,7 +43,7 @@ func InitConfig(fileName string) error {
 
 	_config = &c
 
-	_config.Tables = map[string]map[string]bool{}
+	_config.Tables = map[string]map[string]*schema.Table{}
 	if err := _config.Tables.Change(c.Rules); err != nil {
 		return err
 	}
