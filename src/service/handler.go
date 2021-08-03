@@ -92,7 +92,6 @@ func (h *handler) RowsEventDeal(e *replication.BinlogEvent) error {
 		return nil
 	}
 
-	fmt.Println(tableSchema, tableName)
 	action := ""
 	var rows []map[string]interface{}
 	switch e.Header.EventType {
@@ -111,7 +110,8 @@ func (h *handler) RowsEventDeal(e *replication.BinlogEvent) error {
 	default:
 		return nil
 	}
-	global.NewEvent(tableSchema,tableName,action,rows)
+	event := global.NewEvent(tableSchema,tableName,action,rows)
+	fmt.Println(event)
 	return nil
 }
 

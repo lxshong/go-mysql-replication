@@ -21,6 +21,10 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	//for i, column := range global.Cfg().Tables.GetTable("db_kit", "tb_symptom_timeaxis").Columns {
+	//	fmt.Println(i,column)
+	//}
+	//return
 	err = service.Run()
 	if err != nil {
 		fmt.Println(err)

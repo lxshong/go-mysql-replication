@@ -1,8 +1,12 @@
 # mysql配置
-host: 10.10.10.147
-port: 13308
-user: rep_test
-pass: ACJE6pNbg9CRuOKa4OlI
+host: 127.0.0.1
+port: 23306
+user: root
+pass: 123456
+#host: 127.0.0.1
+#port: 23306
+#user: root
+#pass: 123456
 charset : utf8
 slave_id: 1002 #slave ID
 flavor: mysql
@@ -11,5 +15,10 @@ pos_type: file  # only support file
 pos_file: "run/pos.json"  # only support file
 
 rules:
-    db_msg:
-      - tb_msg_\d{2}
+#    test:
+#      - tb_symptom_timeaxis1
+#      - tgo b_symptom_timeaxis
+    test:
+      - test
+#    db_kit:
+#      - tb_symptom_timeaxis

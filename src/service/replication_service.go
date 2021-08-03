@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"go-mysql-replication/src/global"
 	"go-mysql-replication/src/pos"
+	"strings"
 )
 
 type replicationService struct {
@@ -44,6 +44,9 @@ func (s *replicationService) run(callback EventCallBack) error {
 	for {
 		ev, err := streamer.GetEvent(context.Background())
 		if err != nil {
+			if strings.HasSuffix(err.Error(), "unsupport type 140 in binlog and don't know how to handle") {
+				return nil
+			}
 			return err
 		}
 		switch ev.Event.(type) {
@@ -60,10 +63,9 @@ func (s *replicationService) run(callback EventCallBack) error {
 		default:
 			pst.Pos = ev.Header.LogPos
 		}
-		fmt.Println(pst)
-		//if err := s.pos.Save(); err != nil {
-		//	return err
-		//}
+		if err := s.pos.Save(); err != nil {
+			return err
+		}
 
 	}
 	return nil

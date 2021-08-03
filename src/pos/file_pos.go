@@ -27,6 +27,8 @@ func (receiver *filePos) Initialize() error {
 	if err != nil {
 		return err
 	}
+	//receiver.pos.Name = "master-bin.000496"
+	//receiver.pos.Pos = 552911692
 	return nil
 }
 
