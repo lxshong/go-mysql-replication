@@ -1,9 +1,10 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/go-mysql-org/go-mysql/schema"
+	"go-mysql-replication/src/endpoint"
 	"go-mysql-replication/src/global"
 	"log"
 )
@@ -20,6 +21,7 @@ type handler struct {
 	queue  chan *replication.BinlogEvent
 	stop   chan struct{}
 	tables global.Tables
+	endpoint endpoint.Endpoint
 }
 
 func DefaultCap() int {
@@ -36,6 +38,10 @@ func (h *handler) initialize() error {
 	h.queue = make(chan *replication.BinlogEvent, h.cap)
 	h.stop = make(chan struct{}, 1)
 	h.tables = global.Cfg().Tables
+	h.endpoint = endpoint.GetEndpoint()
+	if h.endpoint == nil {
+		return errors.New("Endpoint needs to be specified")
+	}
 	err := h.startListener()
 	if err != nil {
 		return err
@@ -111,8 +117,7 @@ func (h *handler) RowsEventDeal(e *replication.BinlogEvent) error {
 		return nil
 	}
 	event := global.NewEvent(tableSchema,tableName,action,rows)
-	fmt.Println(event)
-	return nil
+	return h.endpoint.Consume(event)
 }
 
 func (h handler) RowDataToMap(rows [][]interface{}, tableInfo *schema.Table) []map[string]interface{} {

@@ -8,6 +8,7 @@ import (
 
 var _config *config
 
+
 type config struct {
 	Target string `yaml:"target"` // 目标类型，支持redis、mongodb
 
@@ -23,10 +24,14 @@ type config struct {
 	PosFile string `yaml:"pos_file"`
 	Rules   rules  `yaml:"rules"`
 	Tables  Tables
+	// 端点
+	Endpoint string `yaml:"endpoint"`
 }
 
 const (
 	_POS_TYPE_FILE = "file"
+	END_POINT_REDIS = "redis"
+	END_POINT_STDIO = "stdio"
 )
 
 func InitConfig(fileName string) error {

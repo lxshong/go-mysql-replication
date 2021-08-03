@@ -22,3 +22,5 @@ rules:
       - test
 #    db_kit:
 #      - tb_symptom_timeaxis
+
+endpoint: stdio
