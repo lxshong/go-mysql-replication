@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/go-mysql-org/go-mysql/schema"
 	"go-mysql-replication/src/endpoint"
@@ -17,10 +16,10 @@ const (
 )
 
 type handler struct {
-	cap    int
-	queue  chan *replication.BinlogEvent
-	stop   chan struct{}
-	tables global.Tables
+	cap      int
+	queue    chan *replication.BinlogEvent
+	stop     chan struct{}
+	tables   global.Tables
 	endpoint endpoint.Endpoint
 }
 
@@ -38,11 +37,13 @@ func (h *handler) initialize() error {
 	h.queue = make(chan *replication.BinlogEvent, h.cap)
 	h.stop = make(chan struct{}, 1)
 	h.tables = global.Cfg().Tables
-	h.endpoint = endpoint.GetEndpoint()
-	if h.endpoint == nil {
-		return errors.New("Endpoint needs to be specified")
+	ep, err := endpoint.GetEndpoint()
+	if err != nil {
+		return err
+	} else {
+		h.endpoint = ep
 	}
-	err := h.startListener()
+	err = h.startListener()
 	if err != nil {
 		return err
 	}
@@ -104,24 +105,24 @@ func (h *handler) RowsEventDeal(e *replication.BinlogEvent) error {
 	case replication.WRITE_ROWS_EVENTv1, replication.WRITE_ROWS_EVENTv2:
 		// 插入
 		action = InsertAction
-		rows = h.RowDataToMap(ev.Rows,tableInfo)
+		rows = h.RowDataToMap(ev.Rows, tableInfo)
 	case replication.DELETE_ROWS_EVENTv1, replication.DELETE_ROWS_EVENTv2:
 		// 删除
 		action = DeleteAction
-		rows = h.RowDataToMap(ev.Rows,tableInfo)
+		rows = h.RowDataToMap(ev.Rows, tableInfo)
 	case replication.UPDATE_ROWS_EVENTv1, replication.UPDATE_ROWS_EVENTv2:
 		// 更新
 		action = UpdateAction
-		rows = h.RowDataToMap(ev.Rows,tableInfo)
+		rows = h.RowDataToMap(ev.Rows, tableInfo)
 	default:
 		return nil
 	}
-	event := global.NewEvent(tableSchema,tableName,action,rows)
+	event := global.NewEvent(tableSchema, tableName, action, rows)
 	return h.endpoint.Consume(event)
 }
 
 func (h handler) RowDataToMap(rows [][]interface{}, tableInfo *schema.Table) []map[string]interface{} {
-	data := make([]map[string]interface{},0)
+	data := make([]map[string]interface{}, 0)
 	for _, row := range rows {
 		item := map[string]interface{}{}
 		for i, c := range row {
@@ -133,7 +134,7 @@ func (h handler) RowDataToMap(rows [][]interface{}, tableInfo *schema.Table) []m
 				item[fieldName] = c
 			}
 		}
-		data = append(data,item)
+		data = append(data, item)
 	}
 	return data
 }

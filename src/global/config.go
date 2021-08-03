@@ -1,13 +1,13 @@
 package global
 
 import (
+	"fmt"
 	"github.com/go-mysql-org/go-mysql/schema"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
 
 var _config *config
-
 
 type config struct {
 	Target string `yaml:"target"` // 目标类型，支持redis、mongodb
@@ -26,10 +26,11 @@ type config struct {
 	Tables  Tables
 	// 端点
 	Endpoint string `yaml:"endpoint"`
+	Redis    redis  `yaml:"redis"`
 }
 
 const (
-	_POS_TYPE_FILE = "file"
+	_POS_TYPE_FILE  = "file"
 	END_POINT_REDIS = "redis"
 	END_POINT_STDIO = "stdio"
 )
@@ -65,4 +66,24 @@ func PosIsFile() bool {
 		return true
 	}
 	return false
+}
+
+// redis
+type redis struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Db       int    `yaml:"db"`
+	Password string `yaml:"passwd"`
+}
+
+func (receiver redis) GetAddr() string {
+	return fmt.Sprintf("%s:%d", receiver.Host, receiver.Port)
+}
+
+func (receiver redis) GetDb() int {
+	return receiver.Db
+}
+
+func (receiver redis) GetPasswd() string {
+	return receiver.Password
 }

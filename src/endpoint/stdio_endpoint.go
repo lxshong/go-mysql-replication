@@ -13,6 +13,6 @@ func (r stdioEndpoint) Consume(event global.Event) error {
 	return nil
 }
 
-func NewStdioEndpoint() Endpoint {
-	return &stdioEndpoint{}
+func NewStdioEndpoint() (Endpoint,error) {
+	return &stdioEndpoint{},nil
 }
