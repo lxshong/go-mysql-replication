@@ -11,8 +11,10 @@ charset : utf8
 slave_id: 1002 #slave ID
 flavor: mysql
 
-pos_type: file  # only support file
-pos_file: "run/pos.json"  # only support file
+pos_type: zk  # support file,zk
+pos_file: "run/pos.json"  # file path
+pos_zk:
+  - 127.0.0.1:2181
 
 rules:
 #    test:

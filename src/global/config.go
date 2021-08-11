@@ -22,6 +22,7 @@ type config struct {
 
 	PosType string `yaml:"pos_type"`
 	PosFile string `yaml:"pos_file"`
+	PosZk []string `yaml:"pos_zk"`
 	Rules   rules  `yaml:"rules"`
 	Tables  Tables
 	// 端点
@@ -30,6 +31,7 @@ type config struct {
 }
 
 const (
+	_POS_TYPE_ZK  = "zk"
 	_POS_TYPE_FILE  = "file"
 	END_POINT_REDIS = "redis"
 	END_POINT_STDIO = "stdio"
@@ -63,6 +65,13 @@ func Cfg() *config {
 
 func PosIsFile() bool {
 	if _config.PosType == _POS_TYPE_FILE {
+		return true
+	}
+	return false
+}
+
+func PosIsZk() bool {
+	if _config.PosType == _POS_TYPE_ZK {
 		return true
 	}
 	return false

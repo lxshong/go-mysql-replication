@@ -20,6 +20,13 @@ func NewPos() (Pos, error) {
 			return nil, err
 		}
 		return pos, nil
+	case global.PosIsZk():
+		pos := NewZkPos()
+		err := pos.Initialize()
+		if err != nil {
+			return nil, err
+		}
+		return pos, nil
 	default:
 		pos := NewFilePos()
 		err := pos.Initialize()
